@@ -13,7 +13,7 @@ public class Configuration {
     public static final int POPULATION_SIZE = 500;
     public static final double P_CROSSOVER = 0.9;
     public static final double P_MUTATION = 0.1;
-    public static final double P_MUTATION_OF_GEN = 0.1;
+    public static final double P_MUTATION_OF_GEN = P_MUTATION / (CHROMOSOME_LENGTH - 1);
     public static final int MAX_GENERATIONS = 20;
     public static final int MAIN_NODE_INDEX = 0;
     public static final double[][] ADJACENCY_MATRIX = new double[CHROMOSOME_LENGTH][CHROMOSOME_LENGTH];

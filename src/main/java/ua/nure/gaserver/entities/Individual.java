@@ -1,12 +1,6 @@
 package ua.nure.gaserver.entities;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.*;
 
 import static ua.nure.gaserver.configurations.Configuration.*;
 
@@ -74,13 +68,35 @@ public class Individual implements Cloneable {
     }
 
     public static Map<Integer, Integer> getConnections(List<Integer> nodePositions) {
-        return Stream.iterate(0, i -> ++i)
-                     .limit(CHROMOSOME_LENGTH)
-                     .collect(Collectors.toMap(Function.identity(),
-                             i -> getConnectionWithMinWeight(i, nodePositions)));
+        Map<Integer, Integer> connections = new HashMap<>();
+        setNodeEdgesWithMinWeight(nodePositions, connections);
+        for (int i = 0; i < CHROMOSOME_LENGTH; i++) {
+            if (connections.containsKey(i)) continue;
+            setAdditionalNodeEdgesWithMinWeight(i, nodePositions, connections);
+        }
+        return connections;
     }
 
-    public static Integer getConnectionWithMinWeight(Integer i, List<Integer> nodePositions) {
+    public static void setNodeEdgesWithMinWeight(List<Integer> nodePositions, Map<Integer, Integer> connections) {
+        for (int i = 0; i < nodePositions.size(); i++) {
+            Integer source = nodePositions.get(i);
+            int minIndex = 0;
+            double minWeight = Double.MAX_VALUE;
+            for (int j = i+1; j < nodePositions.size(); j++) {
+                Integer destination = nodePositions.get(j);
+                if (connections.containsValue(source) || connections.containsValue(destination)) continue;
+                double weight = ADJACENCY_MATRIX[source][destination];
+                if (weight < minWeight) {
+                    minIndex = destination;
+                    minWeight = weight;
+                }
+            }
+            connections.put(source, minIndex);
+        }
+    }
+
+    public static void setAdditionalNodeEdgesWithMinWeight(Integer i, List<Integer> nodePositions,
+                                                           Map<Integer, Integer> connections) {
         int minIndex = 0;
         double minWeight = Double.MAX_VALUE;
         for (int j = 0; j < nodePositions.size(); j++) {
@@ -88,11 +104,11 @@ public class Individual implements Cloneable {
             if (i.equals(destination)) continue;
             double weight = ADJACENCY_MATRIX[i][destination];
             if (weight < minWeight) {
-                minIndex = j;
+                minIndex = destination;
                 minWeight = weight;
             }
         }
-        return minIndex;
+        connections.put(i, minIndex);
     }
 
     public double getFitness() {
